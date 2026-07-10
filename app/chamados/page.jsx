@@ -427,7 +427,7 @@ export default function ChamadosPage() {
 
         <aside className={`app-sidebar ${menuOpen ? "app-sidebar--open" : ""}`}>
           <nav className="sidebar-nav" aria-label="Menu principal">
-            <button type="button"><CirclePlus size={20} /><span>Abrir chamado</span></button>
+            <Link href="/abrir-chamado"><CirclePlus size={20} /><span>Abrir chamado</span></Link>
             <button className="active" type="button"><Search size={20} /><span>Acompanhar chamados</span></button>
             <button type="button"><Archive size={20} /><span>Chamados finalizados</span></button>
           </nav>

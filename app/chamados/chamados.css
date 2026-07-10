@@ -51,8 +51,8 @@
 .app-layout { min-height: calc(100svh - 72px); display: grid; grid-template-columns: 220px minmax(0, 1fr); }
 .app-sidebar { position: sticky; top: 72px; height: calc(100svh - 72px); display: flex; flex-direction: column; padding: 30px 16px 18px; border-right: 1px solid #e5e9e7; background: #fff; }
 .sidebar-nav { display: grid; gap: 8px; }
-.sidebar-nav button, .logout-button { width: 100%; min-height: 48px; display: flex; align-items: center; gap: 13px; padding: 0 14px; border: 0; border-radius: 8px; color: #46536a; background: transparent; text-align: left; text-decoration: none; cursor: pointer; font-size: .88rem; }
-.sidebar-nav button:hover, .sidebar-nav button.active { color: #0b9b2e; background: #eaf8ed; }
+.sidebar-nav button, .sidebar-nav a, .logout-button { width: 100%; min-height: 48px; display: flex; align-items: center; gap: 13px; padding: 0 14px; border: 0; border-radius: 8px; color: #46536a; background: transparent; text-align: left; text-decoration: none; cursor: pointer; font-size: .88rem; }
+.sidebar-nav button:hover, .sidebar-nav a:hover, .sidebar-nav button.active, .sidebar-nav a.active { color: #0b9b2e; background: #eaf8ed; }
 .logout-button { margin-top: auto; border: 1px solid #e2e7e4; }
 .logout-button:hover { color: #d5222a; background: #fff4f4; }
 .sidebar-overlay { display: none; }
