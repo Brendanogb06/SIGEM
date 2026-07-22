@@ -313,8 +313,9 @@ function TicketDetails({ ticket, onCancel }) {
 
 export default function ChamadosPage() {
   // Estado da interface e dos filtros.
-  const [openId, setOpenId] = useState("05231");
+  const [openId, setOpenId] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [statusFilter, setStatusFilter] = useState("Todos");
   const [categoryFilter, setCategoryFilter] = useState("Todas");
   const [dateFrom, setDateFrom] = useState("");
@@ -389,6 +390,16 @@ export default function ChamadosPage() {
     clearPeriod();
   }
 
+  // No desktop recolhe a lateral; no mobile abre/fecha o menu.
+  function toggleMenu() {
+    if (window.matchMedia("(max-width: 720px)").matches) {
+      setMenuOpen((value) => !value);
+      return;
+    }
+
+    setSidebarCollapsed((value) => !value);
+  }
+
   const periodLabel = dateFrom || dateTo
     ? `${formatDate(dateFrom) || "Início"} – ${formatDate(dateTo) || "Hoje"}`
     : "Todos";
@@ -400,9 +411,9 @@ export default function ChamadosPage() {
           <button
             className="menu-toggle"
             type="button"
-            onClick={() => setMenuOpen((value) => !value)}
-            aria-label={menuOpen ? "Fechar menu" : "Abrir menu"}
-            aria-expanded={menuOpen}
+            onClick={toggleMenu}
+            aria-label={sidebarCollapsed || menuOpen ? "Ampliar menu" : "Minimizar menu"}
+            aria-expanded={!sidebarCollapsed || menuOpen}
           >
             {menuOpen ? <X size={21} /> : <Menu size={21} />}
           </button>
@@ -422,10 +433,10 @@ export default function ChamadosPage() {
         </div>
       </header>
 
-      <div className="app-layout">
+      <div className={`app-layout ${sidebarCollapsed ? "app-layout--collapsed" : ""}`}>
         {menuOpen && <button className="sidebar-overlay" type="button" aria-label="Fechar menu" onClick={() => setMenuOpen(false)} />}
 
-        <aside className={`app-sidebar ${menuOpen ? "app-sidebar--open" : ""}`}>
+        <aside className={`app-sidebar ${menuOpen ? "app-sidebar--open" : ""} ${sidebarCollapsed ? "app-sidebar--collapsed" : ""}`}>
           <nav className="sidebar-nav" aria-label="Menu principal">
             <Link href="/abrir-chamado"><CirclePlus size={20} /><span>Abrir chamado</span></Link>
             <button className="active" type="button"><Search size={20} /><span>Acompanhar chamados</span></button>
@@ -557,16 +568,6 @@ export default function ChamadosPage() {
                 >
                   <div
                     className="ticket-summary"
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => setOpenId(isOpen ? "" : ticket.id)}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter" || event.key === " ") {
-                        event.preventDefault();
-                        setOpenId(isOpen ? "" : ticket.id);
-                      }
-                    }}
-                    aria-expanded={isOpen}
                   >
                     <span className="ticket-identification">
                       <span>ID: {ticket.id} {ticket.status === "Novo" && <em>NOVO</em>}</span>
@@ -582,7 +583,15 @@ export default function ChamadosPage() {
                     </span>
                     <span className="ticket-updated"><RefreshCw size={18} />Atualizado {ticket.updated}</span>
                     <span className="ticket-date"><CalendarDays size={19} />{ticket.date}</span>
-                    <ChevronDown className="ticket-chevron" size={22} />
+                    <button
+                      className="ticket-more-button"
+                      type="button"
+                      onClick={() => setOpenId(isOpen ? "" : ticket.id)}
+                      aria-expanded={isOpen}
+                      aria-label={isOpen ? `Fechar chamado ${ticket.id}` : `Ver mais do chamado ${ticket.id}`}
+                    >
+                      <ChevronDown className="ticket-chevron" size={19} />
+                    </button>
                     {!isOpen && ticket.status === "Concluído" && (
                       <span className="ticket-summary-actions">
                         <button className="action-finish" type="button" onClick={(event) => event.stopPropagation()}>

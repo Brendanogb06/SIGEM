@@ -127,12 +127,12 @@ input {
 }
 
 .brand-logo {
-  width: min(430px, 82%);
-  height: 145px;
+  width: min(460px, 86%);
+  height: clamp(118px, 15vw, 155px);
   object-fit: cover;
-  object-position: 50% 53%;
+  object-position: 50% 54%;
   display: block;
-  margin: 0 auto 38px;
+  margin: 0 auto 34px;
 }
 
 .auth-title {
@@ -419,8 +419,8 @@ input {
   }
 
   .brand-logo {
-    width: min(330px, 90%);
-    height: 115px;
+    width: min(360px, 92%);
+    height: clamp(98px, 26vw, 125px);
     margin-bottom: 28px;
   }
 
@@ -491,7 +491,7 @@ input {
   }
 
   .brand-logo {
-    height: 102px;
+    height: 108px;
     margin-bottom: 20px;
   }
 

@@ -682,3 +682,180 @@
     width: 100%;
   }
 }
+
+/* Ajuste compacto para desktop */
+@media (min-width: 721px) {
+  .open-ticket-page--inside {
+    min-height: calc(100svh - 58px);
+    padding: 18px 20px 28px;
+  }
+
+  .open-ticket-titlebar {
+    min-height: 42px;
+    gap: 11px;
+    margin-bottom: 14px;
+  }
+
+  .open-ticket-titlebar h1 {
+    font-size: 1.42rem;
+  }
+
+  .open-ticket-titlebar p {
+    margin-top: 4px;
+    font-size: .9rem;
+  }
+
+  .open-ticket-titlebar > span {
+    width: 30px;
+    height: 30px;
+  }
+
+  .back-button {
+    width: 34px;
+    height: 34px;
+  }
+
+  .open-ticket-shell {
+    border-radius: 11px;
+  }
+
+  .open-ticket-heading {
+    gap: 9px;
+    padding: 16px 20px 4px;
+  }
+
+  .open-ticket-heading > span {
+    width: 32px;
+    height: 32px;
+  }
+
+  .open-ticket-heading h2 {
+    font-size: 1.02rem;
+  }
+
+  .open-stepper {
+    margin: 14px 64px 18px;
+  }
+
+  .open-stepper li {
+    gap: 6px;
+    font-size: .74rem;
+  }
+
+  .open-stepper span {
+    width: 26px;
+    height: 26px;
+    font-size: .78rem;
+  }
+
+  .open-stepper li::before,
+  .open-stepper li::after {
+    top: 13px;
+  }
+
+  .open-ticket-content {
+    padding: 0 20px 16px;
+  }
+
+  .form-section {
+    padding: 18px;
+    border-radius: 10px;
+  }
+
+  .form-section > header {
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .form-section > header > span,
+  .attachments-block header > span {
+    width: 30px;
+    height: 30px;
+  }
+
+  .form-section h2,
+  .attachments-block h3 {
+    font-size: .9rem;
+  }
+
+  .form-section p,
+  .attachments-block p {
+    font-size: .84rem;
+  }
+
+  .form-grid {
+    gap: 14px 22px;
+  }
+
+  .field-label {
+    margin-bottom: 6px;
+    font-size: .8rem;
+  }
+
+  .text-field,
+  .select-wrap {
+    height: 38px;
+  }
+
+  .text-field,
+  .text-area {
+    padding-left: 13px;
+    padding-right: 13px;
+    font-size: .9rem;
+  }
+
+  .select-wrap {
+    gap: 8px;
+    padding: 0 10px 0 12px;
+    font-size: .9rem;
+  }
+
+  .text-area {
+    min-height: 92px;
+    padding-top: 11px;
+  }
+
+  .attachments-block {
+    margin-top: 18px;
+  }
+
+  .attachments-block header {
+    margin-bottom: 12px;
+  }
+
+  .upload-zone {
+    min-height: 106px;
+    gap: 4px;
+    padding: 14px;
+    font-size: .84rem;
+  }
+
+  .upload-zone svg {
+    width: 30px;
+    height: 30px;
+  }
+
+  .upload-zone b {
+    padding: 7px 14px;
+  }
+
+  .open-ticket-actions {
+    padding: 16px 20px;
+  }
+
+  .btn-primary,
+  .btn-secondary,
+  .btn-danger {
+    min-width: 150px;
+    height: 38px;
+    font-size: .86rem;
+  }
+
+  .review-grid {
+    gap: 12px;
+  }
+
+  .review-grid article {
+    padding: 13px;
+  }
+}

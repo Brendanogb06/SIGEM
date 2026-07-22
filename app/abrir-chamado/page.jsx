@@ -183,6 +183,7 @@ function SuccessModal({ onClose, onTrack }) {
 export default function AbrirChamadoPage() {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [step, setStep] = useState(1);
   const [modal, setModal] = useState(null);
   const [success] = useState(false);
@@ -229,6 +230,16 @@ export default function AbrirChamadoPage() {
     setModal("success");
   }
 
+  // No desktop recolhe a lateral; no mobile abre/fecha o menu.
+  function toggleMenu() {
+    if (window.matchMedia("(max-width: 720px)").matches) {
+      setMenuOpen((value) => !value);
+      return;
+    }
+
+    setSidebarCollapsed((value) => !value);
+  }
+
   // Mantém o mesmo menu das demais telas.
   function renderWithMenu(content) {
     return (
@@ -238,9 +249,9 @@ export default function AbrirChamadoPage() {
             <button
               className="menu-toggle"
               type="button"
-              onClick={() => setMenuOpen((value) => !value)}
-              aria-label={menuOpen ? "Fechar menu" : "Abrir menu"}
-              aria-expanded={menuOpen}
+              onClick={toggleMenu}
+              aria-label={sidebarCollapsed || menuOpen ? "Ampliar menu" : "Minimizar menu"}
+              aria-expanded={!sidebarCollapsed || menuOpen}
             >
               {menuOpen ? <X size={21} /> : <Menu size={21} />}
             </button>
@@ -260,10 +271,10 @@ export default function AbrirChamadoPage() {
           </div>
         </header>
 
-        <div className="app-layout">
+        <div className={`app-layout ${sidebarCollapsed ? "app-layout--collapsed" : ""}`}>
           {menuOpen && <button className="sidebar-overlay" type="button" aria-label="Fechar menu" onClick={() => setMenuOpen(false)} />}
 
-          <aside className={`app-sidebar ${menuOpen ? "app-sidebar--open" : ""}`}>
+          <aside className={`app-sidebar ${menuOpen ? "app-sidebar--open" : ""} ${sidebarCollapsed ? "app-sidebar--collapsed" : ""}`}>
             <nav className="sidebar-nav" aria-label="Menu principal">
               <Link className="active" href="/abrir-chamado"><CirclePlus size={20} /><span>Abrir chamado</span></Link>
               <Link href="/chamados"><Search size={20} /><span>Acompanhar chamados</span></Link>
