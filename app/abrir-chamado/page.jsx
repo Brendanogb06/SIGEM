@@ -21,6 +21,7 @@ import {
   FileText,
   Folder,
   Hammer,
+  House,
   Laptop,
   LogOut,
   MapPin,
@@ -286,6 +287,7 @@ export default function AbrirChamadoPage() {
 
           <aside className={`app-sidebar ${menuOpen ? "app-sidebar--open" : ""} ${sidebarCollapsed ? "app-sidebar--collapsed" : ""}`}>
             <nav className="sidebar-nav" aria-label="Menu principal">
+              <Link href="/inicio"><House size={20} /><span>Início</span></Link>
               <Link className="active" href="/abrir-chamado"><CirclePlus size={20} /><span>Abrir chamado</span></Link>
               <Link href="/chamados"><Search size={20} /><span>Acompanhar chamados</span></Link>
               <button type="button"><Archive size={20} /><span>Chamados finalizados</span></button>

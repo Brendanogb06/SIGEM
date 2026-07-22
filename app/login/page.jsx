@@ -85,7 +85,7 @@ export default function LoginPage() {
                 type="button"
                 onClick={() => {
                   setSelectedProfile("gestor");
-                  router.push("/chamados");
+                  router.push("/inicio");
                 }}
                 aria-pressed={selectedProfile === "gestor"}
               >
@@ -99,7 +99,7 @@ export default function LoginPage() {
                 type="button"
                 onClick={() => {
                   setSelectedProfile("solicitante");
-                  router.push("/chamados");
+                  router.push("/inicio");
                 }}
                 aria-pressed={selectedProfile === "solicitante"}
               >
