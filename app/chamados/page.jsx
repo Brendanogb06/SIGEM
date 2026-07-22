@@ -45,6 +45,7 @@ import {
   Package,
 } from "lucide-react";
 import "./chamados.css";
+import "./card-spacing.css";
 
 // Configuração visual dos status.
 const statusConfig = {

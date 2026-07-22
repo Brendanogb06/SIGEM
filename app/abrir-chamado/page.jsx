@@ -223,7 +223,17 @@ export default function AbrirChamadoPage() {
   }
 
   function cancelFlow() {
-    router.push("/chamados");
+    setForm({
+      category: "",
+      title: "",
+      description: "",
+      unit: "",
+      block: "",
+      room: "",
+    });
+    setFiles([]);
+    setStep(1);
+    setModal(null);
   }
 
   function confirmOpenTicket() {
@@ -507,7 +517,7 @@ export default function AbrirChamadoPage() {
       {modal && modal !== "success" && (
         <ConfirmModal
           type={modal}
-          onClose={() => setModal(null)}
+          onClose={() => modal === "confirm" ? setModal("cancel") : setModal(null)}
           onConfirm={modal === "cancel" ? cancelFlow : confirmOpenTicket}
         />
       )}

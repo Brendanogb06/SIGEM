@@ -1,0 +1,43 @@
+/* Espaçamento vertical final dos cards */
+.tickets-list .ticket-card .ticket-summary {
+  min-height: 112px !important;
+  align-items: center !important;
+  padding-top: 18px !important;
+  padding-bottom: 18px !important;
+}
+
+.tickets-list .ticket-identification {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: 0 !important;
+}
+
+.tickets-list .ticket-identification > span:first-child {
+  margin-bottom: 7px !important;
+  line-height: 1.2 !important;
+}
+
+.tickets-list .ticket-identification strong {
+  margin-bottom: 7px !important;
+  line-height: 1.25 !important;
+}
+
+.tickets-list .ticket-identification small {
+  margin-bottom: 11px !important;
+  line-height: 1.45 !important;
+}
+
+.tickets-list .ticket-category {
+  margin-top: 0 !important;
+}
+
+.tickets-list .ticket-summary-actions {
+  grid-column: 1 / -1 !important;
+  margin-top: 12px !important;
+  padding-top: 10px !important;
+}
+
+.tickets-list .ticket-card--completed .ticket-identification small {
+  max-width: 430px !important;
+}

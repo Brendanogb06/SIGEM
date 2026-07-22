@@ -99,7 +99,7 @@
 .tickets-count strong { font-size: .88rem; }
 
 /* Lista de chamados */
-.tickets-list { max-width: 1480px; margin: auto; display: grid; gap: 10px; }
+.tickets-list { max-width: 1480px; margin: auto; display: grid; gap: 7px; }
 .ticket-card { overflow: hidden; border: 1px solid #e1e6e3; border-radius: 13px; background: #fff; box-shadow: 0 3px 12px rgba(32, 45, 38, .045); }
 .ticket-card--open { border-left: 3px solid var(--green-dark); }
 .ticket-card--completed {
@@ -116,14 +116,14 @@
 .ticket-card--completed.ticket-card--open {
   border-left: 5px solid #12b83b;
 }
-.ticket-summary { width: 100%; min-height: 96px; display: grid; grid-template-columns: minmax(300px, 1.6fr) minmax(150px, .8fr) minmax(190px, 1fr) minmax(220px, .9fr) auto; align-items: center; gap: 20px; padding: 14px 24px; border: 0; background: #fff; text-align: left; }
+.ticket-summary { width: 100%; min-height: 84px; display: grid; grid-template-columns: minmax(300px, 1.6fr) minmax(150px, .8fr) minmax(190px, 1fr) minmax(220px, .9fr) auto; align-items: center; gap: 16px; padding: 12px 20px; border: 0; background: #fff; text-align: left; }
 .ticket-summary:focus-visible { outline: 3px solid rgba(22, 184, 59, .25); outline-offset: -3px; }
-.ticket-identification { display: grid; gap: 5px; }
+.ticket-identification { display: grid; gap: 4px; }
 .ticket-identification > span { color: #45536b; font-size: .9rem; }
 .ticket-identification strong { font: 600 1.08rem/1.25 var(--font-sora), sans-serif; }
-.ticket-identification small { max-width: 560px; overflow: hidden; color: #6d7788; font-size: .84rem; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
+.ticket-identification small { max-width: 560px; overflow: hidden; color: #6d7788; font-size: .82rem; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
 .ticket-identification em { margin-left: 12px; padding: 4px 12px; border-radius: 999px; color: #168f31; background: #e3f7e8; font-style: normal; font-weight: 700; font-size: .72rem; }
-.ticket-category { width: fit-content; display: inline-flex; align-items: center; gap: 6px; margin-top: 2px; padding: 4px 8px; border-radius: 7px; color: #526078; background: #f2f5f3; font-size: .76rem !important; font-weight: 600; }
+.ticket-category { width: fit-content; display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; padding: 4px 8px; border-radius: 7px; color: #526078; background: #f2f5f3; font-size: .74rem !important; font-weight: 600; }
 .ticket-category svg { color: #15a938; }
 .ticket-status, .ticket-updated, .ticket-date { display: flex; align-items: center; gap: 10px; color: #3f4d64; font-size: .91rem; }
 .ticket-status i { width: 12px; height: 12px; border-radius: 50%; background: var(--status); box-shadow: 0 0 0 4px var(--soft); }
@@ -226,6 +226,25 @@
   .tickets-footer { flex-wrap: wrap; }
   .tickets-footer > p { width: 100%; margin: 0; text-align: center; }
   .tickets-footer .page-size { display: none; }
+}
+
+/* Respiro vertical dos cards */
+.tickets-list .ticket-summary {
+  min-height: 88px;
+  padding-top: 13px;
+  padding-bottom: 13px;
+}
+
+.tickets-list .ticket-identification {
+  gap: 5px;
+}
+
+.tickets-list .ticket-identification small {
+  line-height: 1.4;
+}
+
+.tickets-list .ticket-category {
+  margin-top: 5px;
 }
 
 /* Versão mais compacta para desktop */
