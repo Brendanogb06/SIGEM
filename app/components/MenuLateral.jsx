@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   BarChart3,
   Boxes,
@@ -34,6 +35,13 @@ export default function MenuLateral({
   userName,
   onLogout,
 }) {
+  const router = useRouter();
+
+  function handleSair() {
+    onLogout?.();
+    router.push("/login");
+  }
+
   const initials = userName
     ? userName
         .split(" ")
@@ -95,44 +103,24 @@ export default function MenuLateral({
 
         {/* Sair — avatar + rótulo dentro de uma caixa com borda */}
         <div className="border-t border-slate-100 pt-3">
-          {onLogout ? (
-            <button
-              type="button"
-              onClick={onLogout}
-              title={sidebarCollapsed ? "Sair" : undefined}
-              className={`group relative flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-left text-sm font-medium text-slate-600 transition-colors hover:border-rose-200 hover:bg-rose-50 hover:text-rose-500 ${
-                sidebarCollapsed ? "lg:justify-center lg:px-2" : ""
-              }`}
-            >
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-800 text-[11px] font-semibold text-white">
-                {initials || <User className="h-4 w-4" strokeWidth={1.9} />}
+          <button
+            type="button"
+            onClick={handleSair}
+            title={sidebarCollapsed ? "Sair" : undefined}
+            className={`group relative flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-left text-sm font-medium text-slate-600 transition-colors hover:border-rose-200 hover:bg-rose-50 hover:text-rose-500 ${
+              sidebarCollapsed ? "lg:justify-center lg:px-2" : ""
+            }`}
+          >
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-800 text-[11px] font-semibold text-white">
+              {initials || <User className="h-4 w-4" strokeWidth={1.9} />}
+            </span>
+            {!sidebarCollapsed && <span>Sair</span>}
+            {sidebarCollapsed && (
+              <span className="pointer-events-none absolute left-full ml-2 hidden whitespace-nowrap rounded-lg bg-slate-800 px-2.5 py-1.5 text-xs font-normal text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100 lg:block">
+                Sair
               </span>
-              {!sidebarCollapsed && <span>Sair</span>}
-              {sidebarCollapsed && (
-                <span className="pointer-events-none absolute left-full ml-2 hidden whitespace-nowrap rounded-lg bg-slate-800 px-2.5 py-1.5 text-xs font-normal text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100 lg:block">
-                  Sair
-                </span>
-              )}
-            </button>
-          ) : (
-            <Link
-              href="/login"
-              title={sidebarCollapsed ? "Sair" : undefined}
-              className={`group relative flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-600 transition-colors hover:border-rose-200 hover:bg-rose-50 hover:text-rose-500 ${
-                sidebarCollapsed ? "lg:justify-center lg:px-2" : ""
-              }`}
-            >
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-800 text-[11px] font-semibold text-white">
-                {initials || <User className="h-4 w-4" strokeWidth={1.9} />}
-              </span>
-              {!sidebarCollapsed && <span>Sair</span>}
-              {sidebarCollapsed && (
-                <span className="pointer-events-none absolute left-full ml-2 hidden whitespace-nowrap rounded-lg bg-slate-800 px-2.5 py-1.5 text-xs font-normal text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100 lg:block">
-                  Sair
-                </span>
-              )}
-            </Link>
-          )}
+            )}
+          </button>
         </div>
       </aside>
     </>
