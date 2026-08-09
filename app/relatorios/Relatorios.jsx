@@ -1,28 +1,31 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import {
   AlertTriangle,
   BarChart3,
-  Building2,
   Calendar,
   CheckCircle2,
   ChevronDown,
   ChevronRight,
-  ClipboardCheck,
   ClipboardList,
   Clock,
   Download,
   FileText,
-  Gauge,
+  FolderOpen,
+  Search,
   Trash2,
   Wrench,
+  XCircle,
 } from "lucide-react";
+import MenuSuperior from "../components/MenuSuperior";
+import MenuLateral from "../components/MenuLateral";
 
 /* ---------------------------------------------------------
    SIGEM — Relatórios
-   Conteúdo da página. Sem MenuSuperior e MenuLateral — o
-   layout/shell fica a cargo de quem importar este componente.
+   Página completa, com MenuSuperior e MenuLateral, no mesmo
+   padrão do painel-geral (toggleMenu compartilhado).
 --------------------------------------------------------- */
 
 const resumo = [
@@ -54,44 +57,110 @@ const resumo = [
 
 const relatoriosDisponiveis = [
   {
+    titulo: "Chamados em Aberto",
+    desc: "Lista individual de chamados ainda não concluídos, com detalhes de cada um.",
+    icon: FolderOpen,
+    href: "/relatorios/chamados-em-aberto",
+  },
+  {
+    titulo: "Chamados Cancelados",
+    desc: "Lista individual de chamados cancelados, com detalhes de cada um.",
+    icon: XCircle,
+    href: "/relatorios/chamados-cancelados",
+  },
+  {
+    titulo: "Chamados Atrasados",
+    desc: "Lista individual de chamados que passaram do prazo, com detalhes de cada um.",
+    icon: AlertTriangle,
+    href: "/relatorios/chamados-atrasados",
+  },
+  {
     titulo: "Resumo Geral",
-    desc: "Visão geral de todos os chamados no período.",
+    desc: "Visão agregada de todos os chamados no período.",
     icon: FileText,
     href: "/relatorios/resumo-geral",
   },
   {
-    titulo: "Manutenções por Tipo",
-    desc: "Quantidade de manutenções por tipo.",
+    titulo: "Manutenções por Categoria",
+    desc: "Quantidade agregada de manutenções por categoria.",
     icon: Wrench,
-    href: "/relatorios/manutencoes-por-tipo",
-  },
-  {
-    titulo: "Manutenções por Setor",
-    desc: "Distribuição de chamados por setor ou local.",
-    icon: Building2,
-    href: "/relatorios/manutencoes-por-setor",
-  },
-  {
-    titulo: "Tempo de Atendimento",
-    desc: "Média de tempo de atendimento por tipo de manutenção.",
-    icon: Gauge,
-    href: "/relatorios/tempo-de-atendimento",
-  },
-  {
-    titulo: "Ordens de Serviço Emitidas",
-    desc: "Lista de ordens de serviço geradas no período.",
-    icon: ClipboardCheck,
-    href: "/relatorios/ordens-de-servico",
+    href: "/relatorios/manutencoes-por-categoria",
   },
 ];
 
-const relatoriosGerados = [
+const statusOptions = ["Todos", "Novo", "Em andamento", "Pendente", "Concluído", "Cancelado"];
+const categoriaOptions = [
+  "Todas",
+  "Manutenção Preventiva",
+  "Manutenção Preditiva",
+  "Manutenção Corretiva",
+];
+const tecnicoOptions = ["Todos", "Carlos Silva", "João Lima", "Maria Souza"];
+const setorOptions = [
+  "Todos",
+  "TI",
+  "Financeiro",
+  "Administração",
+  "RH",
+  "Infraestrutura",
+  "Secretaria",
+  "Limpeza",
+  "Sala de Reunião",
+  "Sala de Aula"
+];
+const prioridadeOptions = ["Todas", "Baixa", "Média", "Alta", "Urgente"];
+
+const relatoriosGeradosIniciais = [
   {
-    nome: "Resumo Geral",
+    id: "REL-0092",
+    modelo: "Relatório de Chamado Específico",
+    filtros: "Chamado #111 – Trinco quebrado",
+    periodo: "—",
+    geradoEm: "31/05/2025 10:15",
+  },
+  {
+    id: "REL-0091",
+    modelo: "Resumo Geral",
+    filtros: "Todos os status · Todas categorias · Todos setores",
     periodo: "01/05/2025 – 30/05/2025",
     geradoEm: "30/05/2025 14:32",
   },
+  {
+    id: "REL-0090",
+    modelo: "Relatório de Chamado Específico",
+    filtros: "Chamado #999 – Ar condicionado com defeito",
+    periodo: "—",
+    geradoEm: "29/05/2025 09:10",
+  },
+  {
+    id: "REL-0089",
+    modelo: "Chamados Atrasados",
+    filtros: "Setor: TI · Prioridade: Alta",
+    periodo: "01/04/2025 – 30/04/2025",
+    geradoEm: "02/05/2025 17:03",
+  },
+  {
+    id: "REL-0088",
+    modelo: "Chamados em Aberto",
+    filtros: "Todos os status · Todas categorias",
+    periodo: "01/04/2025 – 30/04/2025",
+    geradoEm: "01/05/2025 08:41",
+  },
 ];
+
+function formatarDataBr(isoDate) {
+  if (!isoDate) return "";
+  const [ano, mes, dia] = isoDate.split("-");
+  return `${dia}/${mes}/${ano}`;
+}
+
+function proximoIdRelatorio(lista) {
+  const maiorNumero = lista.reduce((max, r) => {
+    const numero = parseInt(r.id.replace("REL-", ""), 10);
+    return Number.isNaN(numero) ? max : Math.max(max, numero);
+  }, 0);
+  return `REL-${String(maiorNumero + 1).padStart(4, "0")}`;
+}
 
 function ResumoCard({ item }) {
   const Icon = item.icon;
@@ -108,54 +177,122 @@ function ResumoCard({ item }) {
   );
 }
 
-function FiltrosPanel() {
+function Select({ label, icon: Icon, value, onChange, options }) {
+  return (
+    <div>
+      <label className="mb-1.5 block text-xs font-light text-slate-400">{label}</label>
+      <div className="relative">
+        <select
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-full appearance-none rounded-lg border border-slate-200 bg-white px-3 py-2.5 pr-9 text-sm font-normal text-slate-600 hover:border-emerald-300 focus:border-emerald-400 focus:outline-none"
+        >
+          {options.map((opt) => (
+            <option key={opt} value={opt}>
+              {opt}
+            </option>
+          ))}
+        </select>
+        {Icon ? (
+          <Icon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" strokeWidth={1.75} />
+        ) : null}
+        <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+      </div>
+    </div>
+  );
+}
+
+function FiltrosPanel({ onGerarRelatorio, onGerarRelatorioChamado }) {
+  const [dataInicio, setDataInicio] = useState("2025-05-01");
+  const [dataFim, setDataFim] = useState("2025-05-30");
+  const [status, setStatus] = useState("Todos");
+  const [categoria, setCategoria] = useState("Todas");
+  const [tecnico, setTecnico] = useState("Todos");
+  const [setor, setSetor] = useState("Todos");
+  const [prioridade, setPrioridade] = useState("Todas");
+  const [buscaChamado, setBuscaChamado] = useState("");
+
+  function handleGerarClick() {
+    if (buscaChamado.trim()) {
+      onGerarRelatorioChamado(buscaChamado.trim());
+      setBuscaChamado("");
+      return;
+    }
+    onGerarRelatorio({ dataInicio, dataFim, status, categoria, tecnico, setor, prioridade });
+  }
+
   return (
     <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
       <p className="text-base font-medium text-slate-800">Filtros</p>
-      <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-[1fr_1fr_1fr_auto] md:items-end">
-        <div>
+
+      <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {/* Período: data início + data fim */}
+        <div className="sm:col-span-2 lg:col-span-1">
           <label className="mb-1.5 block text-xs font-light text-slate-400">Período</label>
-          <button
-            type="button"
-            className="flex w-full items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2.5 text-left text-sm font-normal text-slate-600 hover:border-emerald-300"
-          >
-            <span className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-slate-400" strokeWidth={1.75} />
-              01/05/2025 – 30/05/2025
-            </span>
-            <ChevronDown className="h-4 w-4 text-slate-400" />
-          </button>
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <Calendar className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" strokeWidth={1.75} />
+              <input
+                type="date"
+                value={dataInicio}
+                onChange={(e) => setDataInicio(e.target.value)}
+                max={dataFim || undefined}
+                className="w-full rounded-lg border border-slate-200 py-2.5 pl-9 pr-2 text-sm font-normal text-slate-600 hover:border-emerald-300 focus:border-emerald-400 focus:outline-none"
+              />
+            </div>
+            <span className="shrink-0 text-xs font-light text-slate-400">até</span>
+            <div className="relative flex-1">
+              <Calendar className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" strokeWidth={1.75} />
+              <input
+                type="date"
+                value={dataFim}
+                onChange={(e) => setDataFim(e.target.value)}
+                min={dataInicio || undefined}
+                className="w-full rounded-lg border border-slate-200 py-2.5 pl-9 pr-2 text-sm font-normal text-slate-600 hover:border-emerald-300 focus:border-emerald-400 focus:outline-none"
+              />
+            </div>
+          </div>
         </div>
 
-        <div>
-          <label className="mb-1.5 block text-xs font-light text-slate-400">Tipo de Relatório</label>
-          <button
-            type="button"
-            className="flex w-full items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2.5 text-left text-sm font-normal text-slate-600 hover:border-emerald-300"
-          >
-            Resumo Geral
-            <ChevronDown className="h-4 w-4 text-slate-400" />
-          </button>
-        </div>
+        <Select label="Status do Chamado" value={status} onChange={setStatus} options={statusOptions} />
+        <Select label="Categoria da Manutenção" value={categoria} onChange={setCategoria} options={categoriaOptions} />
+        <Select label="Técnico Responsável" value={tecnico} onChange={setTecnico} options={tecnicoOptions} />
+        <Select label="Setor / Local de Atendimento" value={setor} onChange={setSetor} options={setorOptions} />
+        <Select label="Prioridade do Chamado" value={prioridade} onChange={setPrioridade} options={prioridadeOptions} />
+      </div>
 
-        <div>
-          <label className="mb-1.5 block text-xs font-light text-slate-400">Setor / Local</label>
-          <button
-            type="button"
-            className="flex w-full items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2.5 text-left text-sm font-normal text-slate-600 hover:border-emerald-300"
-          >
-            Todos
-            <ChevronDown className="h-4 w-4 text-slate-400" />
-          </button>
+      {/* Relatório de chamado específico — busca avulsa, junto dos filtros mas fora do recorte por período */}
+      <div className="mt-5 border-t border-slate-100 pt-4">
+        <p className="text-sm font-medium text-slate-800">Chamado Específico</p>
+        <p className="mt-0.5 text-xs font-light text-slate-400">
+          Busque por ID ou título para gerar o relatório detalhado de um único chamado.
+        </p>
+        <div className="relative mt-3">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" strokeWidth={1.75} />
+          <input
+            type="text"
+            value={buscaChamado}
+            onChange={(e) => setBuscaChamado(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleGerarClick()}
+            placeholder="Ex: #111 ou Trinco quebrado"
+            className="w-full rounded-lg border border-slate-200 py-2.5 pl-9 pr-3 text-sm font-normal text-slate-600 placeholder:text-slate-400 hover:border-emerald-300 focus:border-emerald-400 focus:outline-none"
+          />
         </div>
+      </div>
 
+      {/* Botão único: gera relatório do chamado se a busca acima estiver preenchida, senão usa os filtros gerais */}
+      <div className="mt-5 border-t border-slate-100 pt-4">
         <button
           type="button"
-          className="flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-emerald-700"
+          onClick={handleGerarClick}
+          className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-emerald-700 sm:w-auto"
         >
           <BarChart3 className="h-4 w-4" strokeWidth={1.75} />
           Gerar Relatório
         </button>
+        <p className="mt-2 text-[11px] font-light text-slate-400">
+          Com um chamado buscado acima, gera o relatório dele. Vazio, usa os filtros preenchidos no topo.
+        </p>
       </div>
     </div>
   );
@@ -173,7 +310,7 @@ function RelatoriosDisponiveisPanel() {
             className="flex items-center gap-3 py-3.5 first:pt-3 last:pb-0 hover:bg-emerald-50/40 rounded-lg px-2 -mx-2 transition-colors"
           >
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
-              <r.icon className="h-4.5 w-4.5" strokeWidth={1.75} />
+              <r.icon className="h-[18px] w-[18px]" strokeWidth={1.75} />
             </span>
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium text-slate-800">{r.titulo}</p>
@@ -187,17 +324,24 @@ function RelatoriosDisponiveisPanel() {
   );
 }
 
-function RelatoriosGeradosPanel() {
+function RelatoriosGeradosPanel({ relatoriosGerados }) {
   return (
     <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
       <p className="text-base font-medium text-slate-800">Relatórios Gerados Recentemente</p>
 
+      {relatoriosGerados.length === 0 ? (
+        <p className="mt-4 rounded-xl bg-slate-50/70 p-4 text-xs font-light text-slate-400">
+          Nenhum relatório gerado ainda. Ajuste os filtros acima e clique em "Gerar Relatório".
+        </p>
+      ) : (
       <div className="mt-4 overflow-hidden rounded-xl border border-slate-100">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[560px] text-left text-xs">
+          <table className="w-full min-w-[720px] text-left text-xs">
             <thead>
               <tr className="bg-slate-50/80 text-slate-400">
-                <th className="py-3 pl-4 pr-4 text-[10px] font-medium uppercase tracking-wider">Relatório</th>
+                <th className="py-3 pl-4 pr-4 text-[10px] font-medium uppercase tracking-wider">ID</th>
+                <th className="py-3 pr-4 text-[10px] font-medium uppercase tracking-wider">Modelo</th>
+                <th className="py-3 pr-4 text-[10px] font-medium uppercase tracking-wider">Filtros aplicados</th>
                 <th className="py-3 pr-4 text-[10px] font-medium uppercase tracking-wider">Período</th>
                 <th className="py-3 pr-4 text-[10px] font-medium uppercase tracking-wider">Gerado em</th>
                 <th className="py-3 pr-4 text-[10px] font-medium uppercase tracking-wider">Ações</th>
@@ -205,8 +349,10 @@ function RelatoriosGeradosPanel() {
             </thead>
             <tbody className="divide-y divide-slate-50">
               {relatoriosGerados.map((r) => (
-                <tr key={r.nome} className="text-slate-600 transition-colors hover:bg-emerald-50/40">
-                  <td className="py-3.5 pl-4 pr-4 font-medium text-slate-700">{r.nome}</td>
+                <tr key={r.id} className="text-slate-600 transition-colors hover:bg-emerald-50/40">
+                  <td className="py-3.5 pl-4 pr-4 font-normal text-slate-500">{r.id}</td>
+                  <td className="py-3.5 pr-4 font-medium text-slate-700">{r.modelo}</td>
+                  <td className="py-3.5 pr-4 font-light text-slate-500">{r.filtros}</td>
                   <td className="py-3.5 pr-4 font-light text-slate-500">{r.periodo}</td>
                   <td className="py-3.5 pr-4 font-light text-slate-500">{r.geradoEm}</td>
                   <td className="py-3.5 pr-4">
@@ -233,6 +379,7 @@ function RelatoriosGeradosPanel() {
           </table>
         </div>
       </div>
+      )}
 
       <Link href="/relatorios/historico" className="mt-4 flex items-center gap-1 text-xs font-medium text-green-600 hover:underline">
         Ver todos os relatórios <ChevronRight className="h-3.5 w-3.5" />
@@ -242,34 +389,101 @@ function RelatoriosGeradosPanel() {
 }
 
 export default function Relatorios() {
-  return (
-    <main className="relative flex min-h-screen w-full flex-col overflow-hidden bg-slate-50 font-sans font-light text-slate-800">
-      {/* Camada decorativa de fundo — topo */}
-      <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-gradient-to-br from-green-300/30 to-emerald-500/10 blur-3xl" />
-      <div className="pointer-events-none absolute right-40 top-10 h-24 w-24 rounded-full border-4 border-emerald-200/40" />
-      <div className="pointer-events-none absolute bottom-0 left-64 h-64 w-64 rounded-full bg-gradient-to-tr from-emerald-200/20 to-green-300/10 blur-3xl" />
-      <div
-        className="pointer-events-none absolute bottom-10 right-1/3 h-24 w-24 opacity-[0.15]"
-        style={{
-          backgroundImage: "radial-gradient(circle, #16a34a 1.5px, transparent 1.5px)",
-          backgroundSize: "12px 12px",
-        }}
-      />
+  const [relatoriosGerados, setRelatoriosGerados] = useState(relatoriosGeradosIniciais);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-      {/* Camada decorativa de fundo — base, espelhando o topo */}
-      <div className="pointer-events-none absolute -bottom-28 -left-24 h-80 w-80 rounded-full bg-gradient-to-tr from-green-300/30 to-emerald-500/10 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-32 right-0 h-96 w-96 rounded-full bg-gradient-to-tl from-emerald-400/25 to-green-200/10 blur-3xl" />
-      <div className="pointer-events-none absolute bottom-16 left-1/3 h-20 w-20 rounded-full border-4 border-emerald-200/40" />
-      <div
-        className="pointer-events-none absolute bottom-24 left-1/2 h-24 w-24 -translate-x-1/2 opacity-[0.15]"
-        style={{
-          backgroundImage: "radial-gradient(circle, #16a34a 1.5px, transparent 1.5px)",
-          backgroundSize: "12px 12px",
-        }}
+  function toggleMenu() {
+    // Breakpoint alinhado ao "lg" do Tailwind (1024px), o mesmo usado
+    // no MenuLateral para decidir entre overlay mobile e sidebar fixa.
+    if (typeof window !== "undefined" && window.matchMedia("(max-width: 1023px)").matches) {
+      setMenuOpen((current) => !current);
+      return;
+    }
+    setSidebarCollapsed((current) => !current);
+  }
+
+  function handleGerarRelatorio({ dataInicio, dataFim, status, categoria, tecnico, setor, prioridade }) {
+    const partesFiltro = [
+      status !== "Todos" ? `Status: ${status}` : null,
+      categoria !== "Todas" ? `Categoria: ${categoria}` : null,
+      tecnico !== "Todos" ? `Técnico: ${tecnico}` : null,
+      setor !== "Todos" ? `Setor: ${setor}` : null,
+      prioridade !== "Todas" ? `Prioridade: ${prioridade}` : null,
+    ].filter(Boolean);
+
+    const novoRelatorio = {
+      id: proximoIdRelatorio(relatoriosGerados),
+      modelo: "Resumo Geral",
+      filtros: partesFiltro.length > 0 ? partesFiltro.join(" · ") : "Todos os status · Todas categorias · Todos setores",
+      periodo: `${formatarDataBr(dataInicio)} – ${formatarDataBr(dataFim)}`,
+      geradoEm: new Date().toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }),
+    };
+
+    // TODO: substituir por chamada real à API de geração de relatório
+    setRelatoriosGerados((atual) => [novoRelatorio, ...atual]);
+  }
+
+  function handleGerarRelatorioChamado(buscaChamado) {
+    const ehId = /^#?\d+$/.test(buscaChamado);
+    const novoRelatorio = {
+      id: proximoIdRelatorio(relatoriosGerados),
+      modelo: "Relatório de Chamado Específico",
+      filtros: ehId ? `Chamado #${buscaChamado.replace("#", "")}` : `Chamado – ${buscaChamado}`,
+      periodo: "—",
+      geradoEm: new Date().toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }),
+    };
+
+    // TODO: substituir por busca real do chamado (por ID ou título) e geração via API
+    setRelatoriosGerados((atual) => [novoRelatorio, ...atual]);
+  }
+
+  return (
+    <main className="relative flex min-h-screen w-full flex-col bg-slate-50 font-sans font-light text-slate-800">
+      {/* Camadas decorativas de fundo — isoladas num wrapper com overflow-hidden
+          próprio, para não quebrar o position: sticky do menu lateral */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-gradient-to-br from-green-300/30 to-emerald-500/10 blur-3xl" />
+        <div className="absolute right-40 top-10 h-24 w-24 rounded-full border-4 border-emerald-200/40" />
+        <div className="absolute bottom-0 left-64 h-64 w-64 rounded-full bg-gradient-to-tr from-emerald-200/20 to-green-300/10 blur-3xl" />
+        <div
+          className="absolute bottom-10 right-1/3 h-24 w-24 opacity-[0.15]"
+          style={{
+            backgroundImage: "radial-gradient(circle, #16a34a 1.5px, transparent 1.5px)",
+            backgroundSize: "12px 12px",
+          }}
+        />
+
+        {/* Camada decorativa de fundo — base, espelhando o topo */}
+        <div className="absolute -bottom-28 -left-24 h-80 w-80 rounded-full bg-gradient-to-tr from-green-300/30 to-emerald-500/10 blur-3xl" />
+        <div className="absolute -bottom-32 right-0 h-96 w-96 rounded-full bg-gradient-to-tl from-emerald-400/25 to-green-200/10 blur-3xl" />
+        <div className="absolute bottom-16 left-1/3 h-20 w-20 rounded-full border-4 border-emerald-200/40" />
+        <div
+          className="absolute bottom-24 left-1/2 h-24 w-24 -translate-x-1/2 opacity-[0.15]"
+          style={{
+            backgroundImage: "radial-gradient(circle, #16a34a 1.5px, transparent 1.5px)",
+            backgroundSize: "12px 12px",
+          }}
+        />
+        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-emerald-100/40 to-transparent" />
+      </div>
+
+      <MenuSuperior
+        menuOpen={menuOpen}
+        toggleMenu={toggleMenu}
+        userName="Ana Souza"
+        userRole="Gestor"
+        notificationCount={3}
       />
-      <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-emerald-100/40 to-transparent" />
 
       <div className="relative z-10 flex flex-1">
+        <MenuLateral
+          activeHref="/relatorios"
+          menuOpen={menuOpen}
+          onClose={() => setMenuOpen(false)}
+          sidebarCollapsed={sidebarCollapsed}
+        />
+
         <section className="min-w-0 flex-1">
           <div className="space-y-5 px-6 py-6">
             {/* Cabeçalho */}
@@ -296,7 +510,7 @@ export default function Relatorios() {
               </button>
             </div>
 
-            <FiltrosPanel />
+            <FiltrosPanel onGerarRelatorio={handleGerarRelatorio} onGerarRelatorioChamado={handleGerarRelatorioChamado} />
 
             <div>
               <p className="mb-3 text-base font-medium text-slate-800">Resumo do Período</p>
@@ -309,7 +523,7 @@ export default function Relatorios() {
 
             <RelatoriosDisponiveisPanel />
 
-            <RelatoriosGeradosPanel />
+            <RelatoriosGeradosPanel relatoriosGerados={relatoriosGerados} />
           </div>
         </section>
       </div>

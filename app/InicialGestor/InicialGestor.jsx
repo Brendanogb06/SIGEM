@@ -28,9 +28,11 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+import MenuSuperior from "../components/MenuSuperior";
+import MenuLateral from "../components/MenuLateral";
+
 /* ---------------------------------------------------------
    SIGEM — Painel Geral (admin)
-   Sem MenuSuperior/MenuLateral — apenas o conteúdo do painel.
 --------------------------------------------------------- */
 
 const statusData = [
@@ -404,73 +406,113 @@ function ChamadosTable() {
 }
 
 export default function InicialGestor() {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  function toggleMenu() {
+    if (typeof window !== "undefined" && window.matchMedia("(max-width: 1023px)").matches) {
+      setMenuOpen((current) => !current);
+      return;
+    }
+    setSidebarCollapsed((current) => !current);
+  }
+
   return (
-    <main className="relative flex min-h-screen w-full flex-col overflow-hidden bg-slate-50 font-sans font-light text-slate-800">
-      {/* Camada decorativa de fundo — topo */}
-      <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-gradient-to-br from-green-300/30 to-emerald-500/10 blur-3xl" />
-      <div className="pointer-events-none absolute right-40 top-10 h-24 w-24 rounded-full border-4 border-emerald-200/40" />
-      <div className="pointer-events-none absolute bottom-0 left-64 h-64 w-64 rounded-full bg-gradient-to-tr from-emerald-200/20 to-green-300/10 blur-3xl" />
-      <div
-        className="pointer-events-none absolute bottom-10 right-1/3 h-24 w-24 opacity-[0.15]"
-        style={{
-          backgroundImage:
-            "radial-gradient(circle, #16a34a 1.5px, transparent 1.5px)",
-          backgroundSize: "12px 12px",
+    <div className="min-h-screen bg-slate-50">
+      <MenuSuperior
+        toggleMenu={toggleMenu}
+        userName="Ana"
+        userRole="Gestor"
+        notificationCount={5}
+        onLogout={() => {
+          // TODO: lógica de logout
         }}
       />
 
-      {/* Camada decorativa de fundo — base, espelhando o topo */}
-      <div className="pointer-events-none absolute -bottom-28 -left-24 h-80 w-80 rounded-full bg-gradient-to-tr from-green-300/30 to-emerald-500/10 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-32 right-0 h-96 w-96 rounded-full bg-gradient-to-tl from-emerald-400/25 to-green-200/10 blur-3xl" />
-      <div className="pointer-events-none absolute bottom-16 left-1/3 h-20 w-20 rounded-full border-4 border-emerald-200/40" />
-      <div
-        className="pointer-events-none absolute bottom-24 left-1/2 h-24 w-24 -translate-x-1/2 opacity-[0.15]"
-        style={{
-          backgroundImage:
-            "radial-gradient(circle, #16a34a 1.5px, transparent 1.5px)",
-          backgroundSize: "12px 12px",
-        }}
-      />
-      <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-emerald-100/40 to-transparent" />
+      <div className="flex">
+        <MenuLateral
+          activeHref="/painel"
+          menuOpen={menuOpen}
+          onClose={() => setMenuOpen(false)}
+          sidebarCollapsed={sidebarCollapsed}
+          userName="Ana"
+          onLogout={() => {
+            // TODO: lógica de logout
+          }}
+        />
 
-      <section className="relative z-10 min-w-0 flex-1">
-        <div className="space-y-5 px-6 py-6">
-          <section className="relative overflow-hidden rounded-2xl border border-slate-100 bg-gradient-to-r from-white via-white to-emerald-50 px-8 py-8 sm:px-10">
-            <div className="pointer-events-none absolute -right-10 -top-10 h-48 w-48 rounded-full bg-gradient-to-br from-green-300/50 to-emerald-500/30" />
-            <div className="pointer-events-none absolute -left-10 -bottom-16 h-40 w-40 rounded-full bg-gradient-to-tr from-emerald-200/40 to-green-300/20" />
-            <div className="relative max-w-2xl">
-              <h1 className="text-2xl font-medium tracking-tight text-slate-800 sm:text-3xl">
-                Bem-vindo, Ana
-              </h1>
-              <p className="mt-2 text-sm font-normal text-emerald-600">
-                Há manutenções e chamados aguardando sua análise.
-              </p>
+        <main className="relative flex min-h-screen w-full flex-1 flex-col bg-slate-50 font-sans font-light text-slate-800">
+          {/* Camadas decorativas de fundo — isoladas num wrapper com
+              overflow-hidden próprio, para não quebrar o position: sticky
+              do menu lateral */}
+          <div className="pointer-events-none absolute inset-0 overflow-hidden">
+            <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-gradient-to-br from-green-300/30 to-emerald-500/10 blur-3xl" />
+            <div className="absolute right-40 top-10 h-24 w-24 rounded-full border-4 border-emerald-200/40" />
+            <div className="absolute bottom-0 left-64 h-64 w-64 rounded-full bg-gradient-to-tr from-emerald-200/20 to-green-300/10 blur-3xl" />
+            <div
+              className="absolute bottom-10 right-1/3 h-24 w-24 opacity-[0.15]"
+              style={{
+                backgroundImage:
+                  "radial-gradient(circle, #16a34a 1.5px, transparent 1.5px)",
+                backgroundSize: "12px 12px",
+              }}
+            />
+
+            {/* Camada decorativa de fundo — base, espelhando o topo */}
+            <div className="absolute -bottom-28 -left-24 h-80 w-80 rounded-full bg-gradient-to-tr from-green-300/30 to-emerald-500/10 blur-3xl" />
+            <div className="absolute -bottom-32 right-0 h-96 w-96 rounded-full bg-gradient-to-tl from-emerald-400/25 to-green-200/10 blur-3xl" />
+            <div className="absolute bottom-16 left-1/3 h-20 w-20 rounded-full border-4 border-emerald-200/40" />
+            <div
+              className="absolute bottom-24 left-1/2 h-24 w-24 -translate-x-1/2 opacity-[0.15]"
+              style={{
+                backgroundImage:
+                  "radial-gradient(circle, #16a34a 1.5px, transparent 1.5px)",
+                backgroundSize: "12px 12px",
+              }}
+            />
+            <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-emerald-100/40 to-transparent" />
+          </div>
+
+          <section className="relative z-10 min-w-0 flex-1">
+            <div className="space-y-5 px-6 py-6">
+              <section className="relative overflow-hidden rounded-2xl border border-slate-100 bg-gradient-to-r from-white via-white to-emerald-50 px-8 py-8 sm:px-10">
+                <div className="pointer-events-none absolute -right-10 -top-10 h-48 w-48 rounded-full bg-gradient-to-br from-green-300/50 to-emerald-500/30" />
+                <div className="pointer-events-none absolute -left-10 -bottom-16 h-40 w-40 rounded-full bg-gradient-to-tr from-emerald-200/40 to-green-300/20" />
+                <div className="relative max-w-2xl">
+                  <h1 className="text-2xl font-medium tracking-tight text-slate-800 sm:text-3xl">
+                    Bem-vindo, Ana
+                  </h1>
+                  <p className="mt-2 text-sm font-normal text-emerald-600">
+                    Há manutenções e chamados aguardando sua análise.
+                  </p>
+                </div>
+              </section>
+
+              <div className="flex flex-wrap gap-4">
+                {kpis.map((k) => (
+                  <KpiCard key={k.label} kpi={k} />
+                ))}
+              </div>
+
+              <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
+                <StatusDonut />
+                <SetorBars />
+                <AlertasPanel />
+              </div>
+
+              <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
+                <div className="xl:col-span-2">
+                  <ChamadosTable />
+                </div>
+                <div className="space-y-5">
+                  <AgendaPanel />
+                  <AcoesRapidas />
+                </div>
+              </div>
             </div>
           </section>
-
-          <div className="flex flex-wrap gap-4">
-            {kpis.map((k) => (
-              <KpiCard key={k.label} kpi={k} />
-            ))}
-          </div>
-
-          <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
-            <StatusDonut />
-            <SetorBars />
-            <AlertasPanel />
-          </div>
-
-          <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
-            <div className="xl:col-span-2">
-              <ChamadosTable />
-            </div>
-            <div className="space-y-5">
-              <AgendaPanel />
-              <AcoesRapidas />
-            </div>
-          </div>
-        </div>
-      </section>
-    </main>
+        </main>
+      </div>
+    </div>
   );
 }
