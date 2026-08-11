@@ -85,7 +85,7 @@ export default function LoginPage() {
                 type="button"
                 onClick={() => {
                   setSelectedProfile("gestor");
-                  router.push("/inicio");
+                  router.push("/InicialGestor");
                 }}
                 aria-pressed={selectedProfile === "gestor"}
               >

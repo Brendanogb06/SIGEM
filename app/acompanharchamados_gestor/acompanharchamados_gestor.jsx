@@ -45,6 +45,9 @@ import {
 import "../chamados/chamados.css";
 import "../chamados/card-spacing.css";
 
+import MenuSuperior from "../components/MenuSuperior";
+import MenuLateral from "../components/MenuLateral";
+
 // Configuração visual dos status.
 const statusConfig = {
   Novo: { color: "#18b93b", soft: "#eaf9ee" },
@@ -327,6 +330,10 @@ function TicketDetails({ ticket, onCancel }) {
 }
 
 export default function AcompanharChamadosGestor() {
+  // Estado do menu (superior + lateral).
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
   // Estado da interface e dos filtros.
   const [openId, setOpenId] = useState("");
   const [statusFilter, setStatusFilter] = useState("Todos");
@@ -340,6 +347,16 @@ export default function AcompanharChamadosGestor() {
   const [searchTerm, setSearchTerm] = useState("");
   const [canceledIds, setCanceledIds] = useState([]);
   const FilterCategoryIcon = categoryConfig[categoryFilter] || Folder;
+
+  function toggleMenu() {
+    // Breakpoint alinhado ao "lg" do Tailwind (1024px), o mesmo usado
+    // no MenuLateral para decidir entre overlay mobile e sidebar fixa.
+    if (typeof window !== "undefined" && window.matchMedia("(max-width: 1023px)").matches) {
+      setMenuOpen((current) => !current);
+      return;
+    }
+    setSidebarCollapsed((current) => !current);
+  }
 
   // Aplica o cancelamento feito pelo gestor antes de qualquer filtro.
   const resolvedTickets = tickets.map((ticket) => (
@@ -424,268 +441,288 @@ export default function AcompanharChamadosGestor() {
     : "Todos";
 
   return (
-    <main className="tickets-page">
-      <div className="app-layout app-layout--no-sidebar">
-        <section className="tickets-shell">
-          <header className="tickets-heading">
-            <h1>Acompanhar chamados</h1>
-            <p>Acompanhe, priorize e gerencie os chamados abertos pelos usuários.</p>
-          </header>
+    <div className="min-h-screen bg-slate-50">
+      <MenuSuperior
+        toggleMenu={toggleMenu}
+        userName="Ana"
+        userRole="Gestor"
+        notificationCount={5}
+        onLogout={() => {
+          // TODO: lógica de logout
+        }}
+      />
 
-          {urgentOpenTickets.length > 0 && (
-            <div className="urgent-banner" role="alert">
-              <Flame size={20} />
-              <span>
-                <strong>{urgentOpenTickets.length}</strong> chamado{urgentOpenTickets.length > 1 ? "s" : ""} urgente{urgentOpenTickets.length > 1 ? "s" : ""} aguardando atenção do gestor
-              </span>
-            </div>
-          )}
+      <div className="flex">
+        <MenuLateral
+          activeHref="/chamados"
+          menuOpen={menuOpen}
+          onClose={() => setMenuOpen(false)}
+          sidebarCollapsed={sidebarCollapsed}
+          userName="Ana"
+          onLogout={() => {
+            // TODO: lógica de logout
+          }}
+        />
 
-          <div className="search-panel">
-            <label className="ticket-search">
-              <Search size={21} />
-              <input
-                placeholder="Pesquisar chamado por ID, título ou descrição..."
-                value={searchTerm}
-                onChange={(event) => setSearchTerm(event.target.value)}
-              />
-            </label>
-          </div>
+        <main className="tickets-page flex-1">
+          <section className="tickets-shell">
+            <header className="tickets-heading">
+              <h1>Acompanhar chamados</h1>
+              <p>Acompanhe, priorize e gerencie os chamados abertos pelos usuários.</p>
+            </header>
 
-          <div className="tickets-toolbar">
-            <div className="ticket-controls">
-              <div className="filter-group">
-                <span>Status</span>
-                <label className="ticket-filter">
-                  <SlidersHorizontal size={18} />
-                  <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} aria-label="Filtrar por status">
-                    {statusOptions.map((status) => <option key={status} value={status}>{status}</option>)}
-                  </select>
-                </label>
+            {urgentOpenTickets.length > 0 && (
+              <div className="urgent-banner" role="alert">
+                <Flame size={20} />
+                <span>
+                  <strong>{urgentOpenTickets.length}</strong> chamado{urgentOpenTickets.length > 1 ? "s" : ""} urgente{urgentOpenTickets.length > 1 ? "s" : ""} aguardando atenção do gestor
+                </span>
               </div>
-
-              <div className="filter-group">
-                <span>Categoria</span>
-                <label className="ticket-filter ticket-filter--category">
-                  <FilterCategoryIcon size={18} />
-                  <select value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)} aria-label="Filtrar por categoria">
-                    {categoryOptions.map((category) => <option key={category} value={category}>{category}</option>)}
-                  </select>
-                </label>
-              </div>
-
-              <div className="filter-group">
-                <span>Prioridade</span>
-                <label className="ticket-filter ticket-filter--priority">
-                  <AlertTriangle size={18} />
-                  <select value={priorityFilter} onChange={(event) => setPriorityFilter(event.target.value)} aria-label="Filtrar por prioridade">
-                    {priorityOptions.map((priority) => <option key={priority} value={priority}>{priority}</option>)}
-                  </select>
-                </label>
-              </div>
-
-              <div className="filter-group">
-                <span>Período</span>
-                <div className="period-filter">
-                  <button
-                    className={`period-trigger ${dateFrom || dateTo ? "period-trigger--active" : ""}`}
-                    type="button"
-                    onClick={openPeriod}
-                    aria-expanded={periodOpen}
-                    aria-haspopup="dialog"
-                  >
-                    <CalendarDays size={18} />
-                    <span>{periodLabel}</span>
-                    <ChevronDown size={16} />
-                  </button>
-                </div>
-              </div>
-
-              <button className="clear-filters" type="button" onClick={clearAllFilters}>
-                <RefreshCw size={18} />
-                Limpar filtros
-              </button>
-            </div>
-
-            {periodOpen && (
-              <section className="period-popover" role="dialog" aria-label="Selecionar período">
-                <header>
-                  <div>
-                    <strong>Selecionar período</strong>
-                    <span>Escolha uma data inicial e final.</span>
-                  </div>
-                  <button type="button" onClick={() => setPeriodOpen(false)} aria-label="Fechar período">
-                    <X size={18} />
-                  </button>
-                </header>
-
-                <div className="period-fields">
-                  <label>
-                    <span>De</span>
-                    <input
-                      type="date"
-                      value={draftFrom}
-                      onChange={(event) => setDraftFrom(event.target.value)}
-                      onInput={(event) => setDraftFrom(event.currentTarget.value)}
-                      aria-label="Data inicial"
-                    />
-                  </label>
-                  <label>
-                    <span>Até</span>
-                    <input
-                      type="date"
-                      value={draftTo}
-                      min={draftFrom}
-                      onChange={(event) => setDraftTo(event.target.value)}
-                      onInput={(event) => setDraftTo(event.currentTarget.value)}
-                      aria-label="Data final"
-                    />
-                  </label>
-                </div>
-
-                <footer>
-                  <button className="period-clear" type="button" onClick={clearPeriod}>Limpar</button>
-                  <button className="period-apply" type="button" onClick={applyPeriod}>Aplicar período</button>
-                </footer>
-              </section>
             )}
-          </div>
 
-          <div className="tickets-count">
-            <span><ClipboardList size={19} /></span>
-            <strong>Exibindo {displayedTickets.length} chamados</strong>
-          </div>
+            <div className="search-panel">
+              <label className="ticket-search">
+                <Search size={21} />
+                <input
+                  placeholder="Pesquisar chamado por ID, título ou descrição..."
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                />
+              </label>
+            </div>
 
-          <div className="tickets-list">
-            {displayedTickets.map((ticket) => {
-              const isOpen = openId === ticket.id;
-              const config = statusConfig[ticket.status];
-              const priority = priorityConfig[ticket.priority];
-              const isUrgentOpen = ticket.priority === "Urgente" && openStatuses.includes(ticket.status);
-              const SummaryCategoryIcon = categoryConfig[ticket.category] || Folder;
-              return (
-                <article
-                  className={`ticket-card ${isOpen ? "ticket-card--open" : ""} ${ticket.status === "Concluído" ? "ticket-card--completed" : ""} ${isUrgentOpen ? "ticket-card--urgent" : ""}`}
-                  key={ticket.id}
-                >
-                  <div className="ticket-summary">
-                    <span className="ticket-identification">
-                      <span>
-                        ID: {ticket.id} {ticket.status === "Novo" && <em>NOVO</em>}
-                      </span>
-                      <strong>{ticket.title}</strong>
-                      <small>{ticket.description}</small>
-                      <span className="ticket-category">
-                        <SummaryCategoryIcon size={15} />
-                        {ticket.category}
-                      </span>
-                    </span>
-                    <span
-                      className="priority-pill"
-                      style={{ "--priority": priority.color, "--priority-soft": priority.soft }}
-                    >
-                      {isUrgentOpen ? <Flame size={14} /> : <i />}
-                      {ticket.priority}
-                    </span>
-                    <span className="ticket-status" style={{ "--status": config.color, "--soft": config.soft }}>
-                      <i />{ticket.status}
-                    </span>
-                    <span className="ticket-updated"><RefreshCw size={18} />Atualizado {ticket.updated}</span>
-                    <span className="ticket-date"><CalendarDays size={19} />{ticket.date}</span>
+            <div className="tickets-toolbar">
+              <div className="ticket-controls">
+                <div className="filter-group">
+                  <span>Status</span>
+                  <label className="ticket-filter">
+                    <SlidersHorizontal size={18} />
+                    <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} aria-label="Filtrar por status">
+                      {statusOptions.map((status) => <option key={status} value={status}>{status}</option>)}
+                    </select>
+                  </label>
+                </div>
+
+                <div className="filter-group">
+                  <span>Categoria</span>
+                  <label className="ticket-filter ticket-filter--category">
+                    <FilterCategoryIcon size={18} />
+                    <select value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)} aria-label="Filtrar por categoria">
+                      {categoryOptions.map((category) => <option key={category} value={category}>{category}</option>)}
+                    </select>
+                  </label>
+                </div>
+
+                <div className="filter-group">
+                  <span>Prioridade</span>
+                  <label className="ticket-filter ticket-filter--priority">
+                    <AlertTriangle size={18} />
+                    <select value={priorityFilter} onChange={(event) => setPriorityFilter(event.target.value)} aria-label="Filtrar por prioridade">
+                      {priorityOptions.map((priority) => <option key={priority} value={priority}>{priority}</option>)}
+                    </select>
+                  </label>
+                </div>
+
+                <div className="filter-group">
+                  <span>Período</span>
+                  <div className="period-filter">
                     <button
-                      className="ticket-more-button"
+                      className={`period-trigger ${dateFrom || dateTo ? "period-trigger--active" : ""}`}
                       type="button"
-                      onClick={() => setOpenId(isOpen ? "" : ticket.id)}
-                      aria-expanded={isOpen}
-                      aria-label={isOpen ? `Fechar chamado ${ticket.id}` : `Ver mais do chamado ${ticket.id}`}
+                      onClick={openPeriod}
+                      aria-expanded={periodOpen}
+                      aria-haspopup="dialog"
                     >
-                      <ChevronDown className="ticket-chevron" size={19} />
+                      <CalendarDays size={18} />
+                      <span>{periodLabel}</span>
+                      <ChevronDown size={16} />
                     </button>
-                    {!isOpen && ticket.status === "Concluído" && (
-                      <span className="ticket-summary-actions">
-                        <button className="action-finish" type="button" onClick={(event) => event.stopPropagation()}>
-                          <Check size={19} />Finalizar chamado
-                        </button>
-                        <button className="action-unresolved" type="button" onClick={(event) => event.stopPropagation()}>
-                          <AlertTriangle size={19} />Problema não resolvido
-                        </button>
-                      </span>
-                    )}
                   </div>
-                  {isOpen && <TicketDetails ticket={ticket} onCancel={() => cancelTicket(ticket.id)} />}
-                </article>
-              );
-            })}
-            {displayedTickets.length === 0 && (
-              <div className="tickets-empty">
-                <Search size={28} />
-                <strong>Nenhum chamado encontrado</strong>
-                <span>Tente alterar o filtro ou o termo pesquisado.</span>
+                </div>
+
+                <button className="clear-filters" type="button" onClick={clearAllFilters}>
+                  <RefreshCw size={18} />
+                  Limpar filtros
+                </button>
               </div>
-            )}
-          </div>
 
-          <footer className="tickets-footer">
-            <p>Mostrando {displayedTickets.length} de {tickets.length} chamados</p>
-            <nav aria-label="Paginação">
-              <button type="button"><ChevronLeft size={18} /></button>
-              <button className="active" type="button">1</button>
-              <button type="button">2</button>
-              <button type="button">3</button>
-              <button type="button"><ChevronRight size={18} /></button>
-            </nav>
-            <button className="page-size" type="button">10 por página <ChevronDown size={17} /></button>
-          </footer>
-        </section>
+              {periodOpen && (
+                <section className="period-popover" role="dialog" aria-label="Selecionar período">
+                  <header>
+                    <div>
+                      <strong>Selecionar período</strong>
+                      <span>Escolha uma data inicial e final.</span>
+                    </div>
+                    <button type="button" onClick={() => setPeriodOpen(false)} aria-label="Fechar período">
+                      <X size={18} />
+                    </button>
+                  </header>
+
+                  <div className="period-fields">
+                    <label>
+                      <span>De</span>
+                      <input
+                        type="date"
+                        value={draftFrom}
+                        onChange={(event) => setDraftFrom(event.target.value)}
+                        onInput={(event) => setDraftFrom(event.currentTarget.value)}
+                        aria-label="Data inicial"
+                      />
+                    </label>
+                    <label>
+                      <span>Até</span>
+                      <input
+                        type="date"
+                        value={draftTo}
+                        min={draftFrom}
+                        onChange={(event) => setDraftTo(event.target.value)}
+                        onInput={(event) => setDraftTo(event.currentTarget.value)}
+                        aria-label="Data final"
+                      />
+                    </label>
+                  </div>
+
+                  <footer>
+                    <button className="period-clear" type="button" onClick={clearPeriod}>Limpar</button>
+                    <button className="period-apply" type="button" onClick={applyPeriod}>Aplicar período</button>
+                  </footer>
+                </section>
+              )}
+            </div>
+
+            <div className="tickets-count">
+              <span><ClipboardList size={19} /></span>
+              <strong>Exibindo {displayedTickets.length} chamados</strong>
+            </div>
+
+            <div className="tickets-list">
+              {displayedTickets.map((ticket) => {
+                const isOpen = openId === ticket.id;
+                const config = statusConfig[ticket.status];
+                const priority = priorityConfig[ticket.priority];
+                const isUrgentOpen = ticket.priority === "Urgente" && openStatuses.includes(ticket.status);
+                const SummaryCategoryIcon = categoryConfig[ticket.category] || Folder;
+                return (
+                  <article
+                    className={`ticket-card ${isOpen ? "ticket-card--open" : ""} ${ticket.status === "Concluído" ? "ticket-card--completed" : ""} ${isUrgentOpen ? "ticket-card--urgent" : ""}`}
+                    key={ticket.id}
+                  >
+                    <div className="ticket-summary">
+                      <span className="ticket-identification">
+                        <span>
+                          ID: {ticket.id} {ticket.status === "Novo" && <em>NOVO</em>}
+                        </span>
+                        <strong>{ticket.title}</strong>
+                        <small>{ticket.description}</small>
+                        <span className="ticket-category">
+                          <SummaryCategoryIcon size={15} />
+                          {ticket.category}
+                        </span>
+                      </span>
+                      <span
+                        className="priority-pill"
+                        style={{ "--priority": priority.color, "--priority-soft": priority.soft }}
+                      >
+                        {isUrgentOpen ? <Flame size={14} /> : <i />}
+                        {ticket.priority}
+                      </span>
+                      <span className="ticket-status" style={{ "--status": config.color, "--soft": config.soft }}>
+                        <i />{ticket.status}
+                      </span>
+                      <span className="ticket-updated"><RefreshCw size={18} />Atualizado {ticket.updated}</span>
+                      <span className="ticket-date"><CalendarDays size={19} />{ticket.date}</span>
+                      <button
+                        className="ticket-more-button"
+                        type="button"
+                        onClick={() => setOpenId(isOpen ? "" : ticket.id)}
+                        aria-expanded={isOpen}
+                        aria-label={isOpen ? `Fechar chamado ${ticket.id}` : `Ver mais do chamado ${ticket.id}`}
+                      >
+                        <ChevronDown className="ticket-chevron" size={19} />
+                      </button>
+                      {!isOpen && ticket.status === "Concluído" && (
+                        <span className="ticket-summary-actions">
+                          <button className="action-finish" type="button" onClick={(event) => event.stopPropagation()}>
+                            <Check size={19} />Finalizar chamado
+                          </button>
+                          <button className="action-unresolved" type="button" onClick={(event) => event.stopPropagation()}>
+                            <AlertTriangle size={19} />Problema não resolvido
+                          </button>
+                        </span>
+                      )}
+                    </div>
+                    {isOpen && <TicketDetails ticket={ticket} onCancel={() => cancelTicket(ticket.id)} />}
+                  </article>
+                );
+              })}
+              {displayedTickets.length === 0 && (
+                <div className="tickets-empty">
+                  <Search size={28} />
+                  <strong>Nenhum chamado encontrado</strong>
+                  <span>Tente alterar o filtro ou o termo pesquisado.</span>
+                </div>
+              )}
+            </div>
+
+            <footer className="tickets-footer">
+              <p>Mostrando {displayedTickets.length} de {tickets.length} chamados</p>
+              <nav aria-label="Paginação">
+                <button type="button"><ChevronLeft size={18} /></button>
+                <button className="active" type="button">1</button>
+                <button type="button">2</button>
+                <button type="button">3</button>
+                <button type="button"><ChevronRight size={18} /></button>
+              </nav>
+              <button className="page-size" type="button">10 por página <ChevronDown size={17} /></button>
+            </footer>
+          </section>
+
+          <style jsx>{`
+            .tickets-shell {
+              width: 100%;
+            }
+            .priority-pill {
+              display: inline-flex;
+              align-items: center;
+              gap: 6px;
+              padding: 4px 10px;
+              border-radius: 999px;
+              background: var(--priority-soft);
+              color: var(--priority);
+              font-size: 12px;
+              font-weight: 700;
+              white-space: nowrap;
+            }
+            .priority-pill i {
+              width: 7px;
+              height: 7px;
+              border-radius: 50%;
+              background: var(--priority);
+              display: inline-block;
+            }
+            .urgent-banner {
+              display: flex;
+              align-items: center;
+              gap: 10px;
+              padding: 12px 16px;
+              margin-bottom: 16px;
+              border-radius: 12px;
+              background: #ffebec;
+              color: #b3121a;
+              border: 1px solid #f6b8bb;
+              font-size: 14px;
+            }
+            .urgent-banner svg {
+              color: #ef1b24;
+              flex-shrink: 0;
+            }
+            :global(.ticket-card--urgent) {
+              border: 1px solid #f2999e !important;
+              box-shadow: 0 0 0 3px rgba(239, 27, 36, 0.08);
+            }
+          `}</style>
+        </main>
       </div>
-
-      <style jsx>{`
-        .app-layout--no-sidebar {
-          display: block;
-        }
-        .app-layout--no-sidebar .tickets-shell {
-          width: 100%;
-        }
-        .priority-pill {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          padding: 4px 10px;
-          border-radius: 999px;
-          background: var(--priority-soft);
-          color: var(--priority);
-          font-size: 12px;
-          font-weight: 700;
-          white-space: nowrap;
-        }
-        .priority-pill i {
-          width: 7px;
-          height: 7px;
-          border-radius: 50%;
-          background: var(--priority);
-          display: inline-block;
-        }
-        .urgent-banner {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          padding: 12px 16px;
-          margin-bottom: 16px;
-          border-radius: 12px;
-          background: #ffebec;
-          color: #b3121a;
-          border: 1px solid #f6b8bb;
-          font-size: 14px;
-        }
-        .urgent-banner svg {
-          color: #ef1b24;
-          flex-shrink: 0;
-        }
-        :global(.ticket-card--urgent) {
-          border: 1px solid #f2999e !important;
-          box-shadow: 0 0 0 3px rgba(239, 27, 36, 0.08);
-        }
-      `}</style>
-    </main>
+    </div>
   );
 }

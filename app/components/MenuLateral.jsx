@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   BarChart3,
   Boxes,
@@ -9,42 +10,48 @@ import {
   ClipboardList,
   LayoutGrid,
   LogOut,
+  User,
   Wrench,
 } from "lucide-react";
 
-/* ---------------------------------------------------------
-   MenuLateral
-   Sidebar de navegação do painel do gestor: lista de itens
-   do menu + botão "Sair". Suporta modo colapsado (desktop)
-   e overlay (mobile), controlados via props pelo componente
-   pai (o mesmo toggleMenu() que já existe no painel-geral).
-
-   Props:
-   - activeHref        string   -> href do item ativo (ex: "/painel")
-   - menuOpen          boolean  -> abre/fecha o overlay no mobile
-   - onClose           function -> fecha o overlay mobile (clique fora)
-   - sidebarCollapsed  boolean  -> modo compacto no desktop (só ícones)
-   - onLogout          function -> callback opcional pro botão "Sair"
-                                   (se não for passado, usa Link para /login)
---------------------------------------------------------- */
-
 const navItems = [
-  { label: "Painel Geral", icon: LayoutGrid, href: "/painel" },
-  { label: "Acompanhar Chamados", icon: ClipboardList, href: "/chamados" },
+  { label: "Painel Geral", icon: LayoutGrid, href: "/InicialGestor" },
+  { label: "Acompanhar Chamados", icon: ClipboardList, href: "/acompanharchamados_gestor" },
   { label: "Chamados Finalizados", icon: CheckSquare, href: "/chamados-finalizados" },
   { label: "Equipamentos", icon: Boxes, href: "/equipamentos" },
   { label: "Manutenções", icon: Wrench, href: "/manutencoes" },
   { label: "Agenda", icon: Calendar, href: "/agenda" },
-  { label: "Relatórios", icon: BarChart3, href: "/relatorios-page" },
+  { label: "Relatórios", icon: BarChart3, href: "/relatorios" },
 ];
+
+// Altura da barra superior (faixa escura de 6px + barra branca de 70px)
+const HEADER_HEIGHT = 76;
 
 export default function MenuLateral({
   activeHref = "/painel",
   menuOpen = false,
   onClose,
   sidebarCollapsed = false,
+  userName,
   onLogout,
 }) {
+  const router = useRouter();
+
+  function handleSair() {
+    onLogout?.();
+    router.push("/login");
+  }
+
+  const initials = userName
+    ? userName
+        .split(" ")
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+    : null;
+
   return (
     <>
       {menuOpen && (
@@ -52,53 +59,69 @@ export default function MenuLateral({
           type="button"
           aria-label="Fechar menu"
           onClick={onClose}
-          className="fixed inset-0 z-30 bg-slate-900/40 lg:hidden"
+          className="fixed inset-0 z-30 bg-slate-900/40 backdrop-blur-[1px] transition-opacity lg:hidden"
         />
       )}
 
       <aside
-        className={`fixed z-40 flex h-[calc(100%-89px)] w-64 shrink-0 flex-col justify-between border-r border-slate-100 bg-white px-4 py-6 transition-transform lg:static lg:h-auto lg:translate-x-0 ${
-          menuOpen ? "translate-x-0" : "-translate-x-full"
-        } ${sidebarCollapsed ? "lg:w-20" : "lg:w-64"}`}
+        style={{ top: `${HEADER_HEIGHT}px`, height: `calc(100vh - ${HEADER_HEIGHT}px)` }}
+        className={`fixed left-0 z-40 flex w-64 shrink-0 flex-col justify-between border-r border-slate-100 bg-white px-3 py-5 transition-[transform,width] duration-200 ease-out lg:sticky lg:translate-x-0 ${
+          menuOpen ? "translate-x-0 shadow-xl" : "-translate-x-full"
+        } ${sidebarCollapsed ? "lg:w-[76px] lg:px-2" : "lg:w-64 lg:px-3"}`}
       >
-        <nav className="space-y-1" aria-label="Menu principal">
+        <nav className="flex-1 space-y-1 overflow-y-auto" aria-label="Menu principal">
           {navItems.map((item) => {
             const active = item.href === activeHref;
             return (
               <Link
                 key={item.label}
                 href={item.href}
-                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-normal transition-colors ${
+                onClick={() => onClose?.()}
+                title={sidebarCollapsed ? item.label : undefined}
+                className={`group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
                   active
-                    ? "bg-green-50 font-medium text-green-700"
-                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
-                }`}
+                    ? "bg-emerald-50 text-emerald-700"
+                    : "text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+                } ${sidebarCollapsed ? "lg:justify-center lg:px-0" : ""}`}
               >
-                <item.icon size={18} strokeWidth={1.75} />
-                {!sidebarCollapsed && <span>{item.label}</span>}
+                {active && (
+                  <span className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-emerald-500" />
+                )}
+                <item.icon size={18} strokeWidth={1.85} className="shrink-0" />
+                {!sidebarCollapsed && <span className="truncate">{item.label}</span>}
+
+                {/* Tooltip flutuante quando colapsada (desktop) */}
+                {sidebarCollapsed && (
+                  <span className="pointer-events-none absolute left-full ml-2 hidden whitespace-nowrap rounded-lg bg-slate-800 px-2.5 py-1.5 text-xs font-normal text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100 lg:block">
+                    {item.label}
+                  </span>
+                )}
               </Link>
             );
           })}
         </nav>
 
-        {onLogout ? (
+        {/* Sair — avatar + rótulo dentro de uma caixa com borda */}
+        <div className="border-t border-slate-100 pt-3">
           <button
             type="button"
-            onClick={onLogout}
-            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-normal text-slate-400 hover:bg-slate-50 hover:text-rose-500"
+            onClick={handleSair}
+            title={sidebarCollapsed ? "Sair" : undefined}
+            className={`group relative flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-left text-sm font-medium text-slate-600 transition-colors hover:border-rose-200 hover:bg-rose-50 hover:text-rose-500 ${
+              sidebarCollapsed ? "lg:justify-center lg:px-2" : ""
+            }`}
           >
-            <LogOut size={18} strokeWidth={1.75} />
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-800 text-[11px] font-semibold text-white">
+              {initials || <User className="h-4 w-4" strokeWidth={1.9} />}
+            </span>
             {!sidebarCollapsed && <span>Sair</span>}
+            {sidebarCollapsed && (
+              <span className="pointer-events-none absolute left-full ml-2 hidden whitespace-nowrap rounded-lg bg-slate-800 px-2.5 py-1.5 text-xs font-normal text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100 lg:block">
+                Sair
+              </span>
+            )}
           </button>
-        ) : (
-          <Link
-            href="/login"
-            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-normal text-slate-400 hover:bg-slate-50 hover:text-rose-500"
-          >
-            <LogOut size={18} strokeWidth={1.75} />
-            {!sidebarCollapsed && <span>Sair</span>}
-          </Link>
-        )}
+        </div>
       </aside>
     </>
   );
